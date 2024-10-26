@@ -158,7 +158,7 @@ Minimum values for each column:
           1958.0    561
           Name: count, Length: 75, dtype: int64
 
-### Issue 3: Cleaning 'age' column
+### Issue 4: Cleaning 'age' column
 - **Cleaning Method**: Replace values of 'age' that are zero with the column mean
 - **Implementation**:
   ```python

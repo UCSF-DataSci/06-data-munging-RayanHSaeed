@@ -19,18 +19,16 @@
 
 ### Maximum and minimum values for each column
 Maximum values for each column:
-age           1.000000e+02
-gender        3.000000e+00
-year          2.119000e+03
-population    3.293043e+10
-dtype: float64
+- age:           1.000000e+02
+- gender:        3.000000e+00
+- year:          2.119000e+03
+- population:    3.293043e+10
 
 Minimum values for each column:
-age              0.0
-gender           1.0
-year          1950.0
-population      21.0
-dtype: float64
+- age:              0.0
+- gender:           1.0
+- year:          1950.0
+- population:      21.0
 
 ### Missing Values for each column
 - **income_groups:**    6306
@@ -66,19 +64,23 @@ dtype: float64
     - Potential Impact: Duplicate records can unnecessarily increase counts and distort summary statistics.
 
 3. **Unexpected Values in Selected Columns**
-    - Description: 'gender' column contains values besides 1 and 2. Age column contains unrealistic values. 
-    - Affected Column(s): gender, age
+    - Description: 'gender' column contains values besides 1 and 2. Age column contains unrealistic values. Year column contains values past 2024. 
+    - Affected Column(s): gender, age, year
     - Example: 
-    Unique values in gender:
-    gender
-    1.0    56777
-    2.0    56748
-    3.0     6286
-    NaN     5907
-    Name: count, dtype: int64 
+        - Unique values in gender:
+            gender
+            1.0    56777
+            2.0    56748
+            3.0     6286
+            NaN     5907
+            Name: count, dtype: int64 
 
-    age mininum value: 0 
-    - Potential Impact: Incorrect category values make it challenging to accurately analyze data by categories, in this case by gender (male vs. female). Minimum value of age is unrealistic; perhaps incorrectly entered. 
+        - age mininum value: 0 
+
+        - year maximum value: 2119
+        - year mean: 2025.0680494661804
+    
+    - Potential Impact: Incorrect category values make it challenging to accurately analyze data by categories, in this case by gender (male vs. female). Minimum value of age is unrealistic; perhaps incorrectly entered. Maximum value of 'year' is 2119 and mean value of 'year' is 2025.068 meaning that 'year' column contains year values past 2024. 
 
 
 ## 2. Data Cleaning Process
@@ -125,18 +127,36 @@ dtype: float64
   - Rows affected: 2214
   - Data distribution change: distribution after removing duplicates resembled distribution after handling missing values. 
 
-### Issue 3: Cleaning 'gender' column
-- **Cleaning Method**: Keep only values of 1 and 2 in the gender column 
+### Issue 3: Cleaning 'gender' and 'year' column
+- **Cleaning Method**: Keep only values of 1 and 2 in the gender column. Removing year values past 2024.
 - **Implementation**:
   ```python
     invalid_gender_count = len(df[~df['gender'].isin([1, 2])])     #count rows with invalid gender values before cleaning
     df = df[df['gender'].isin([1, 2])]                             #remove rows where 'gender' is not 1 or 2
+    rows_greater_than_2024 = len(df[df['year'] > 2024])            #count rows greater than 'year' 2024 before cleaning
+    df = df[df['year'] <= 2024]                                    #remove rows where 'year' is greater than 2024
     distribution_after_gender = df['gender'].value_counts()        #distribution change in 'gender' column
+    distribution_after_year = df['year'].value_counts()            #distribution change in 'year' column
   ```
-- **Justification**: Assuming that gender of value '3' was entered erroneously, it is removed from the dataset. 
+- **Justification**: Assuming that gender of value '3' was entered erroneously, it is removed from the dataset. Any year past 2024 is also assumed to be entered erroneously.
 - **Impact**: 
-  - Rows affected: 5120
-  - Data distribution change: distribution after removing genders resembled distribution after handling missing values and removing duplicated rows. 
+  - Gender Rows affected: 5120
+  - Year Rows affected: 45534
+  - Data distribution change: distribution after removing genders resembled distribution after handling missing values and removing duplicated rows. After removing year values greater than '2024' count distributions changed to include years 1958 through 2019.  
+        Distribution After Cleaning Year Column:
+          year
+          1988.0    636
+          1981.0    623
+          2018.0    617
+          1999.0    616
+          2019.0    616
+                  ... 
+          2004.0    576
+          2008.0    574
+          1980.0    574
+          1983.0    573
+          1958.0    561
+          Name: count, Length: 75, dtype: int64
 
 ### Issue 3: Cleaning 'age' column
 - **Cleaning Method**: Replace values of 'age' that are zero with the column mean
@@ -148,24 +168,24 @@ dtype: float64
   ```
 - **Justification**: Assuming that ago of value '0' was entered erroneously, it is replaced with the mean of the age column. 
 - **Impact**: 
-  - Rows affected: 888
+  - Rows affected: 449
   - Data distribution change: distribution after removing age with value of 0 resembled distribution after handling missing values and removing duplicated rows. 
 
 ## 3. Final State Analysis
 
 ### Dataset Overview
 - **Name**: cleanedpopulationdata.csv
-- **Rows**: 90305
+- **Rows**: 44771
 - **Columns**: 5
 
 ### Column Details
 | Column Name   | Data Type | Non-Null Count | #Unique Values | Mean         |
 |---------------|-----------|----------------|----------------|--------------|
-| age           | object    | 90305          | 101            | 5.051551e+01 |
-| gender        | float64   | 90305          | 2              | 1.500814e+00 |
-| income_groups | float64   | 90305          | 8              | NaN          |
-| population    | float64   | 90305          | 89372          | 1.145180e+08 |
-| year          | float64   | 90305          | 169            | 2.025066e+03 |
+| age           | object    | 44771          | 101            | 5.051551e+01 |
+| gender        | float64   | 44771          | 2              | 1.500814e+00 |
+| income_groups | float64   | 44771          | 8              | NaN          |
+| population    | float64   | 44771          | 44201          | 1.145180e+08 |
+| year          | float64   | 44771          | 75             | 2.025066e+03 |
 
 
 ### Summary of Changes
@@ -173,6 +193,7 @@ dtype: float64
 - Removed entirely duplicated rows across all columns, retaining only unique rows.
 - Cleaned up the gender column by removing rows with invalid values, ensuring only values 1 and 2.
 - Removed rows with age = 0 for logical consistency in the dataset.
-- Impact on Data Distribution: the removal of rows with missing or invalid data reduced the dataset size. The distribution of age is now more consistent, as unrealistic values (like 0) have been removed. The mean value of gender now accurately reflects only binary entries, making it suitable for gender-based analyses.
-- Challenges: deciding whether to drop or fill missing values required evaluating the impact on data integrity. Ultimately, I chose to remove rows with missing values rather than filling them in order to avoid skewing the dataset and avoiding the risk of introducing unrealistic data. Going off of the assumption that entering a value of "3" for gender had to be an error, I decided to remove any entries with "3". Having a code book would have made it easier to make that decision. For age, removing zero values improved data quality. Since this was a population dataset based on income groups by age, gender, and year, an age of "0" did not make logical sense to include in the analysis. Further inspection of the data source would be required in order to determine what the cut-off age would need to be. For all intents and purposes, I decided to have the cut off age at 1-years old rather than 0-years old. 
+- Removed rows with year > 2024 for logical consistency in the dataset.
+- Impact on Data Distribution: the removal of rows with missing or invalid data reduced the dataset size. The distribution of age is now more consistent, as unrealistic values (like 0) have been removed. The mean value of gender now accurately reflects only binary entries, making it suitable for gender-based analyses. Any unrealistic values recorded with year > 2024 have been removed to maintain data integrity as well. 
+- Challenges: deciding whether to drop or fill missing values required evaluating the impact on data integrity. Ultimately, I chose to remove rows with missing values rather than filling them in order to avoid skewing the dataset and avoiding the risk of introducing unrealistic data. Going off of the assumption that entering a value of "3" for gender had to be an error, I decided to remove any entries with "3". Having a code book would have made it easier to make that decision. For age, removing zero values improved data quality. Since this was a population dataset based on income groups by age, gender, and year, an age of "0" did not make logical sense to include in the analysis. Further inspection of the data source would be required in order to determine what the cut-off age would need to be. For all intents and purposes, I decided to have the cut off age at 1-years old rather than 0-years old. Similarly, including any sort of data with a year past 2024 did not make sense, so all rows with a year value of 2024 were removed in order to maintain data integrity.
 - Future improvements: Standardizing categorical values in order to ensure uniform values for categorical fields like income_groups would make data aggregation and analysis easier; perhaps only allowing certain values to be entered into the data (multiple-choice style). Another improvement could be to add validation rules, such as range checks for age, in order to prevent future entries of unrealistic values (such as age = 0 or gender = 3).

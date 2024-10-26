@@ -85,8 +85,10 @@ distribution_after_duplicates = data_distribution_summary(df, numeric_columns)
 
 invalid_gender_count = len(df[~df['gender'].isin([1, 2])])     #count rows with invalid gender values before cleaning
 df = df[df['gender'].isin([1, 2])]                             #remove rows where 'gender' is not 1 or 2
+rows_greater_than_2024 = len(df[df['year'] > 2024])            #count rows greater than 'year' 2024 before cleaning
+df = df[df['year'] <= 2024]                                    #remove rows where 'year' is greater than 2024
 distribution_after_gender = df['gender'].value_counts()        #distribution change in 'gender' column
-
+distribution_after_year = df['year'].value_counts()            #distribution change in 'year' column
 
 
 
@@ -103,6 +105,7 @@ print(f"Rows Dropped due to Missing Values: {rows_dropped_na}")
 print(f"Rows Filled due to Missing Values: {rows_filled_na}")
 print(f"Rows Dropped due to Duplicates: {rows_dropped_duplicates}")
 print(f"Invalid Gender Rows Corrected: {invalid_gender_count}")
+print(f"Rows Greater than Year 2024: {rows_greater_than_2024}")
 print(f"Rows with Age Zero Corrected: {age_zero_count}")
 
 print("\nData Distribution Changes after Cleaning:")
@@ -114,6 +117,8 @@ print("\nDistribution After Removing Duplicates:")
 print(distribution_after_duplicates)
 print("\nDistribution After Cleaning Gender Column:")
 print(distribution_after_gender)
+print("\nDistribution After Cleaning Year Column:")
+print(distribution_after_year)
 print("\nDistribution After Cleaning Age Column:")
 print(distribution_after_age)
 
